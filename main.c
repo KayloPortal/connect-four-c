@@ -41,6 +41,8 @@ int checkWin(int board[12][12], int R, int C){
       if(board[i][j] == 2) countSecond++;
       else countSecond = 0;
     }
+    if (countFirst == 4) return 1;
+    else if (countSecond == 4) return 2;
   }
   // Check vertical
   for(int j = 0; j < C; j++){
@@ -55,6 +57,8 @@ int checkWin(int board[12][12], int R, int C){
       if(board[i][j] == 2) countSecond++;
       else countSecond = 0;
     }
+    if (countFirst == 4) return 1;
+    else if (countSecond == 4) return 2;
   }
   // Check diagonal (top-left to bottom-right)
   for(int j = 0; j < C - 3; j++){
@@ -69,6 +73,8 @@ int checkWin(int board[12][12], int R, int C){
       if(board[i][k] == 2) countSecond++;
       else countSecond = 0;
     }
+    if (countFirst == 4) return 1;
+    else if (countSecond == 4) return 2;
   }
   for(int j = C - 1; j > 2; j--){
     int countFirst = 0, countSecond = 0;
@@ -82,6 +88,8 @@ int checkWin(int board[12][12], int R, int C){
       if(board[i][k] == 2) countSecond++;
       else countSecond = 0;
     }
+    if (countFirst == 4) return 1;
+    else if (countSecond == 4) return 2;
   }
   // Check diagonal (bottom-left to top-right)
   for(int j = C - 1; j > 2; j--){
@@ -96,6 +104,8 @@ int checkWin(int board[12][12], int R, int C){
       if(board[i][k] == 2) countSecond++;
       else countSecond = 0;
     }
+    if (countFirst == 4) return 1;
+    else if (countSecond == 4) return 2;
   }
   for(int i = 0; i < R - 3; i++){
     int countFirst = 0, countSecond = 0;
@@ -109,6 +119,8 @@ int checkWin(int board[12][12], int R, int C){
       if(board[z][j] == 2) countSecond++;
       else countSecond = 0;
     }
+    if (countFirst == 4) return 1;
+    else if (countSecond == 4) return 2;
   }
   return 0;
 }
