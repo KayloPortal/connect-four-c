@@ -336,14 +336,19 @@ int fileDrivenMove(){
 
 int main(){  
   srand(time(NULL));
-  int R = 8, C = 8;
+  int R = 0, C = 0;
   char token;
   char token2;
   int gamemode, difficulty;
-  printf("====> Enter the dimensions of the board\nNumber of columns:\n-> ");
-  scanf(" %d", &C);
-  printf("Number of rows:\n-> ");
-  scanf(" %d", &R);
+  printf("====> Enter the dimensions of the board\n");
+  while(C < 4 || C > 12){
+    printf("Number of columns(must be between 4-12):\n->");
+    scanf(" %d", &C);
+  }
+  while(R < 4 || R > 12){
+    printf("Number of rows(must be between 4-12):\n-> ");
+    scanf(" %d", &R);
+  }
   printf("====> Choose your token:\n-> ");
   scanf(" %c", &token);
   printf("====> Choose your opponent's token:\n-> ");
@@ -380,30 +385,7 @@ int main(){
   player2.id = 2;
   player2.move = gamemode == humanVsComputer? difficulty == 0? aiMoveEasy : aiMoveMedium : humanMove;
   player2.token = token2;
-  printf("Difficulty %d", difficulty);
   printBoard(gameState.board, R, C, player1.token, player2.token);
   engine(&gameState, onEnd, &settings, onContinue, &player1, &player2, onWrongColumn);
-
-  // int currentToken = 1;
-  // while(1){
-  //   int col;
-  //   printf("It's Player %d's turn. Enter column (1-%d): ", currentToken, C);
-  //   scanf("%d", &col);
-  //   int status = putToken(board, R, C, --col, currentToken);
-  //   if (status == -1) printf("invalid column. Enter a column between 1 and %d.\n", C);
-  //   else if (status == -2) printf("Column %d is full. Enter another column.\n", col);
-  //   else {
-  //     printBoard(board, R, C);
-  //     int win = checkWin(board, R, C);
-  //     if (win == 1) {
-  //       printf("Player 1 wins!\n");
-  //       break;
-  //     } else if (win == 2) {
-  //       printf("Player 2 wins!\n");
-  //       break;
-  //     }
-  //     currentToken = currentToken == 1 ? 2 : 1;
-  //   }
-  // }
   return 0;
 }
