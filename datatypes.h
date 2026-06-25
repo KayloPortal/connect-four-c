@@ -12,7 +12,7 @@ typedef enum {
 
 typedef enum {
   easy,
-  normal,
+  medium,
   hard
 } Difficulty;
 

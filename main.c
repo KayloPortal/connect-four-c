@@ -227,25 +227,27 @@ int aiMoveEasy(const GameState *st, Player *player, Settings *settings){
       len++;
     }
   }
-  for(int i = 0; i < len; i++){
-    int j = vacant[i];
-    int k = height[i];
-    gamestate.board[k][j] = player->id;
-    int result = checkWin(gamestate.board, settings->R, settings->C, 0);
-    if(result == player->id && (rand() % 100) > 20) return j;
-    gamestate.board[k][j] = 0;
+  if ((rand() % 100) > 80){
+    for(int i = 0; i < len; i++){
+      int j = vacant[i];
+      int k = height[i];
+      gamestate.board[k][j] = player->id;
+      int result = checkWin(gamestate.board, settings->R, settings->C, 0);
+      if(result == player->id) return j;
+      gamestate.board[k][j] = 0;
+    }
   }
-  for(int i = 0; i < len; i++){
-    int j = vacant[i];
-    int k = height[i];
-    gamestate.board[k][j] = player->id == 1? 2 : 1;
-    int result = checkWin(gamestate.board, settings->R, settings->C, 1);
-    int horizontalLose = player->id == 1 && result == 8 || player->id == 2 && result == 4;
-    int verticalLose = player->id == 1 && result == 9 || player->id == 2 && result == 5;
-    int diagonalLose = player->id == 1 && result == 10 || player->id == 2 && result == 6;
-    if((horizontalLose || verticalLose) && ((rand() % 100) > 30)) return j;
-    if(diagonalLose && ((rand() % 100) > 70)) return j;
-    gamestate.board[k][j] = 0;
+  if((rand() % 100) > 70){
+    for(int i = 0; i < len; i++){
+      int j = vacant[i];
+      int k = height[i];
+      gamestate.board[k][j] = player->id == 1? 2 : 1;
+      int result = checkWin(gamestate.board, settings->R, settings->C, 1);
+      int horizontalLose = player->id == 1 && result == 8 || player->id == 2 && result == 4;
+      int verticalLose = player->id == 1 && result == 9 || player->id == 2 && result == 5;
+      int diagonalLose = player->id == 1 && result == 10 || player->id == 2 && result == 6;
+      if((horizontalLose || verticalLose || diagonalLose) && ((rand() % 100) > 75)) return j;
+    }
   }
   return vacant[rand() % len];
 }
@@ -350,7 +352,7 @@ int main(){
   scanf("%d", &gamemode);
   gamemode--;
   printf("====> Difficulty\n1. Easy\n2. Medium\n-> ");
-  scanf("%d", difficulty);
+  scanf("%d", &difficulty);
   difficulty--;
   printf("\n");
 
@@ -376,9 +378,9 @@ int main(){
   player1.move = humanMove;
   player1.token = token;
   player2.id = 2;
-  player2.move = gamemode == humanVsComputer? difficulty == easy? aiMoveEasy : aiMoveMedium : humanMove;
+  player2.move = gamemode == humanVsComputer? difficulty == 0? aiMoveEasy : aiMoveMedium : humanMove;
   player2.token = token2;
-  
+  printf("Difficulty %d", difficulty);
   printBoard(gameState.board, R, C, player1.token, player2.token);
   engine(&gameState, onEnd, &settings, onContinue, &player1, &player2, onWrongColumn);
 
