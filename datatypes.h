@@ -1,24 +1,44 @@
 #include <stdio.h>
 
-typedef struct GameState GameState;
+typedef struct {
+  int board[12][12];
+} GameState;
 
-typedef int (*MoveFn)(const GameState *st, void *ctx);
+typedef enum {
+  humanVsHuman,
+  humanVsComputer,
+  fileInputMode,
+} GameMode;
+
+typedef enum {
+  easy,
+  normal,
+  hard
+} Difficulty;
 
 typedef struct {
+  Difficulty difficulty;
+  GameMode gamemode;
+  int R;
+  int C;
+} Settings;
+
+typedef struct Player Player;
+
+typedef int (*MoveFn)(const GameState *st, Player *player);
+struct Player {
   MoveFn move;
   void *ctx;
   char token;
-} PLayer;
+  int id; // is 1 for player one, is 2 for player two.
+};
 
-typedef struct {
-  int computerVsComputer;
-  int humanVsComputer;
-  int fileInputMode;
-} GameMode;
+typedef int (*BoardExportFn)(const GameState *st);
 
-typedef struct {
-  int easy;
-  int normal;
-  int hard;
-} Difficulty;
+typedef void (*OnContinue)(const GameState *st,
+Settings *settings);
 
+typedef int (*OnWrongColumn)(int isFull, int isInvalid);
+
+typedef void (*OnEnd)(const GameState *st, Player *winner,
+Settings *settings);

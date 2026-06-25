@@ -4,7 +4,7 @@
 #define maxR 12
 #define maxC 12
 
-int printBoard(int board[12][12], int R, int C){
+int printBoard(const int board[12][12], int R, int C){
   for (int i = 0; i < R; i++) {
     for (int j = 0; j < C; j++) {
       if(board[i][j] == 1) printf(" X ");
@@ -13,6 +13,7 @@ int printBoard(int board[12][12], int R, int C){
     }
     printf("\n");
   }
+  printf("\n");
   return 0;
 }
 
@@ -125,32 +126,159 @@ int checkWin(int board[12][12], int R, int C){
   return 0;
 }
 
-int main(){  
-  int board[12][12] = {0};
-  int R = 6, C = 7;
-  
-  printBoard(board, R, C);
+int checkFull(int board[12][12], int R, int C){
+  for(int i = 0; i < C; i++){
+    if(board[0][i] == 0) return 0;
+  }
+  return 1;
+}
 
-  int currentToken = 1;
-  while(1){
-    int col;
-    printf("It's Player %d's turn. Enter column (1-%d): ", currentToken, C);
-    scanf("%d", &col);
-    int status = putToken(board, R, C, --col, currentToken);
-    if (status == -1) printf("invalid column. Enter a column between 1 and %d.\n", C);
-    else if (status == -2) printf("Column %d is full. Enter another column.\n", col);
-    else {
-      printBoard(board, R, C);
-      int win = checkWin(board, R, C);
-      if (win == 1) {
-        printf("Player 1 wins!\n");
-        break;
-      } else if (win == 2) {
-        printf("Player 2 wins!\n");
-        break;
-      }
-      currentToken = currentToken == 1 ? 2 : 1;
+int engine(GameState *gameState, OnEnd onEnd, Settings *settings, OnContinue onContinue,
+  Player *player1, Player *player2, OnWrongColumn onWrongColumn){
+  // Initialize
+  for(int i = 0; i < settings->R; i++){
+    for(int j = 0; j < settings->C; j++){
+      gameState->board[i][j] = 0;
     }
   }
+
+  while(1){
+    // Process Moves
+    int selectedColumn, status, win;
+
+    // PLayer 1's turn
+    selectedColumn = player1->move(gameState, player1);
+    
+    status = -3; // No selected column
+    while(status < 0){
+      status = putToken(gameState->board, settings->R, settings->C, selectedColumn, player1->token == 'X'? 1 : 2);
+      if(status == -1 || status == -2) selectedColumn = onWrongColumn(status == -2, status == -1);
+    }
+    
+    win = checkWin(gameState->board, settings->R, settings->C);
+    if(win == 1) {onEnd(gameState, player1->token == 'X' ? player1 : player2, settings); break;}
+    else if(win == 2){onEnd(gameState, player1->token == 'O' ? player1 : player2, settings); break;}
+    else {
+      if(checkFull(gameState->board, settings->R, settings->C)) onEnd(gameState, NULL, settings);
+      else onContinue(gameState, settings);
+    }
+
+    // PLayer 2's turn
+    selectedColumn = player2->move(gameState, player2);
+
+    status = -3; // No selected column
+    while(status < 0){
+      status = putToken(gameState->board, settings->R, settings->C, selectedColumn, player2->token == 'X'? 1 : 2);
+      if(status == -1 || status == -2) selectedColumn = onWrongColumn(status == -2, status == -1);
+    }
+    
+    win = checkWin(gameState->board, settings->R, settings->C);
+    if(win == 1) {onEnd(gameState, player1->token == 'X' ? player1 : player2, settings); break;}
+    else if(win == 2){onEnd(gameState, player1->token == 'O' ? player1 : player2, settings); break;}
+    else {
+      if(checkFull(gameState->board, settings->R, settings->C)) onEnd(gameState, NULL, settings);
+      else onContinue(gameState, settings);
+    }
+  }
+
+  return 0;
+}
+
+void endHandler(const GameState *st, Player *winner, Settings *settings){
+  printBoard(st->board, settings->R, settings->C);
+  if(winner == NULL) printf("It's a Draw!\n");
+  else(printf("Player %d won the match!\n", winner->id));
+}
+
+void continueHandler(const GameState *st, Settings *settings){
+  printBoard(st->board, settings->R, settings->C);
+}
+
+int wrongColumnHandler(int isFull, int isInvalid){
+  if(isFull == 1) printf("This columns is full, please enter another column: ");
+  else if(isInvalid == 1) printf("This column doesn't exist, please enter a valid empty column: ");
+  int sel;
+  scanf("%d", &sel);
+  // printf("\n");
+  return sel;
+}
+
+int humanMove(const GameState *st, Player *player){
+  printf("It's player %d's turn, please enter a column: ", player->id);
+  int sel;
+  scanf("%d", &sel);
+  return sel - 1;
+}
+
+int aiMove(const GameState *st, Player *player){
+  // to write
+  return 1;
+}
+
+int fileDrivenMove(){
+  // to write
+  return 1;
+}
+
+int main(){  
+  int R = 8, C = 8;
+  char token;
+  printf("Enter the dimensions of the board\nNumber of columns: ");
+  scanf(" %d", &C);
+  printf("Number of rows: ");
+  scanf(" %d", &R);
+  printf("Choose your token: ");
+  scanf(" %c", &token);
+  printf("\n");
+
+  MoveFn player1Move, player2Move;
+  OnEnd onEnd = endHandler;
+  OnContinue onContinue = continueHandler;
+  OnWrongColumn onWrongColumn = wrongColumnHandler;
+  
+  GameState gameState;
+  for(int i = 0; i < R; i++){
+    for(int j = 0; j < C; j++){
+      gameState.board[i][j] = 0;
+    }
+  }
+
+  Settings settings;
+  settings.R = R;
+  settings.C = C;
+  settings.gamemode = humanVsHuman;
+
+  Player player1, player2;
+  player1.id = 1;
+  player1.move = humanMove;
+  player1.token = token;
+  player2.id = 2;
+  player2.move = humanMove;
+  player2.token = token == 'X'? 'O' : 'X';
+  
+  printBoard(gameState.board, R, C);
+  engine(&gameState, onEnd, &settings, onContinue, &player1, &player2, onWrongColumn);
+
+  // int currentToken = 1;
+  // while(1){
+  //   int col;
+  //   printf("It's Player %d's turn. Enter column (1-%d): ", currentToken, C);
+  //   scanf("%d", &col);
+  //   int status = putToken(board, R, C, --col, currentToken);
+  //   if (status == -1) printf("invalid column. Enter a column between 1 and %d.\n", C);
+  //   else if (status == -2) printf("Column %d is full. Enter another column.\n", col);
+  //   else {
+  //     printBoard(board, R, C);
+  //     int win = checkWin(board, R, C);
+  //     if (win == 1) {
+  //       printf("Player 1 wins!\n");
+  //       break;
+  //     } else if (win == 2) {
+  //       printf("Player 2 wins!\n");
+  //       break;
+  //     }
+  //     currentToken = currentToken == 1 ? 2 : 1;
+  //   }
+  // }
   return 0;
 }
