@@ -213,7 +213,6 @@ int humanMove(const GameState *st, Player *player, Settings *settings){
 }
 
 int aiMoveEasy(const GameState *st, Player *player, Settings *settings){
-  srand(time(NULL));
   GameState gamestate = *st;
   int vacant[12];
   int height[12];
@@ -252,7 +251,6 @@ int aiMoveEasy(const GameState *st, Player *player, Settings *settings){
 }
 
 int aiMoveMedium(const GameState *st, Player *player, Settings *settings){
-  srand(time(NULL));
   GameState gamestate = *st;
   int vacant[12];
   int height[12];
@@ -287,28 +285,40 @@ int aiMoveMedium(const GameState *st, Player *player, Settings *settings){
     gamestate.board[k][j] = 0;
   }
   int worth[12] = {0};
+  int meaningfull_j[12] = {0};
+  int meaningfull_i[12] = {0};
+  int lenMeaning = 0;
+  for(int index = 0; index < len; index++){
+    int free = 0, consecutive = 0;
+    int j = vacant[index];
+    int i = 0;
+    while(i < settings->R && gamestate.board[i][j] == 0){free++; i++;}
+    while(i < settings->R && gamestate.board[i][j] == 1){consecutive++; i++;}
+    if(consecutive == 0) while(i < settings->R && gamestate.board[i][j] == 2){consecutive++; i++;}
+    if(free + consecutive >= 4) {meaningfull_j[lenMeaning] = vacant[index]; meaningfull_i[lenMeaning++] = height[index];}
+  }
   int maxWorth = 0;
   int maxWorthJ = -1;
+  if(lenMeaning == 0) return vacant[(int)len/2];
   for(int index = 0; index < len; index++){
-    int j = vacant[index];
-    int i = height[index];
-    int row, col;
-    if(row < settings->R - 1){
+    int j = meaningfull_j[index];
+    int i = meaningfull_i[index];
+    if(i < settings->R - 1){
       worth[index] += gamestate.board[i+1][j] == 0? 1 : gamestate.board[i+1][j] == player->id ? 3 : 2;
       if(j < settings->C - 1) worth[index] += gamestate.board[i+1][j+1] == 0? 1 : gamestate.board[i+1][j+1] == player->id ? 3 : 2;
       if(j > 0) worth[index] += gamestate.board[i+1][j-1] == 0? 1 : gamestate.board[i+1][j-1] == player->id ? 3 : 2;
     }
-    if(row > 0){
+    if(i > 0){
       worth[index] += gamestate.board[i-1][j] == 0? 1 : gamestate.board[i-1][j] == player->id ? 3 : 2;
       if(j < settings->C - 1) worth[index] += gamestate.board[i-1][j+1] == 0? 1 : gamestate.board[i-1][j+1] == player->id ? 3 : 2;
       if(j > 0) worth[index] += gamestate.board[i-1][j-1] == 0? 1 : gamestate.board[i-1][j-1] == player->id ? 3 : 2;
     }
     if(j < settings->C - 1) worth[index] += gamestate.board[i][j+1] == 0? 1 : gamestate.board[i][j+1] == player->id ? 3 : 2;
     if(j > 0) worth[index] += gamestate.board[i][j-1] == 0? 1 : gamestate.board[i][j-1] == player->id ? 3 : 2;
-    if(worth[i] > maxWorth) {maxWorth = worth[i]; maxWorthJ = j;}
+    if(worth[index] > maxWorth) {maxWorth = worth[index]; maxWorthJ = j;}
   }
-  if(maxWorthJ == -1 || maxWorth <= 4) return vacant[(int)len/2];
-  if(maxWorth <= 5 && (rand() % 100) > 50) return vacant[(int)len/2];
+  if(maxWorthJ == -1 || maxWorth <= 4) return meaningfull_j[(int)len/2];
+  if(maxWorth <= 5 && (rand() % 100) > 50) return meaningfull_j[(int)len/2];
   return maxWorthJ;
 }
 
@@ -323,6 +333,7 @@ int fileDrivenMove(){
 }
 
 int main(){  
+  srand(time(NULL));
   int R = 8, C = 8;
   char token;
   char token2;
