@@ -224,12 +224,13 @@ int aiMoveEasy(const GameState *st, Player *player, Settings *settings){
       height[len] = 0;
       int index = settings->R - 1;
       while(index >= 0 && gamestate.board[index--][j] != 0) height[len]++;
+      height[len] = settings->R - height[len] - 1;
       len++;
     }
   }
   for(int i = 0; i < len; i++){
     int j = vacant[i];
-    int k = height[i] + 1;
+    int k = height[i];
     gamestate.board[k][j] = player->id;
     int result = checkWin(gamestate.board, settings->R, settings->C, 0);
     if(result == player->id && (rand() % 100) > 20) return j;
@@ -237,7 +238,7 @@ int aiMoveEasy(const GameState *st, Player *player, Settings *settings){
   }
   for(int i = 0; i < len; i++){
     int j = vacant[i];
-    int k = height[i] + 1;
+    int k = height[i];
     gamestate.board[k][j] = player->id == 1? 2 : 1;
     int result = checkWin(gamestate.board, settings->R, settings->C, 1);
     int horizontalLose = player->id == 1 && result == 8 || player->id == 2 && result == 4;
