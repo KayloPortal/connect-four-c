@@ -202,7 +202,7 @@ int wrongColumnHandler(int isFull, int isInvalid){
   int sel;
   scanf("%d", &sel);
   // printf("\n");
-  return sel;
+  return sel - 1;
 }
 
 int humanMove(const GameState *st, Player *player){
