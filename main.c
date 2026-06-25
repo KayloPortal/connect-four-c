@@ -252,8 +252,64 @@ int aiMoveEasy(const GameState *st, Player *player, Settings *settings){
 }
 
 int aiMoveMedium(const GameState *st, Player *player, Settings *settings){
-  // to write
-  return 1;
+  srand(time(NULL));
+  GameState gamestate = *st;
+  int vacant[12];
+  int height[12];
+  int len = 0;
+  for(int j = 0; j < settings->C; j++){
+    if(gamestate.board[0][j] == 0){
+      vacant[len] = j;
+      height[len] = 0;
+      int index = settings->R - 1;
+      while(index >= 0 && gamestate.board[index--][j] != 0) height[len]++;
+      height[len] = settings->R - height[len] - 1;
+      len++;
+    }
+  }
+  for(int i = 0; i < len; i++){
+    int j = vacant[i];
+    int k = height[i];
+    gamestate.board[k][j] = player->id;
+    int result = checkWin(gamestate.board, settings->R, settings->C, 0);
+    if(result == player->id) return j;
+    gamestate.board[k][j] = 0;
+  }
+  for(int i = 0; i < len; i++){
+    int j = vacant[i];
+    int k = height[i];
+    gamestate.board[k][j] = player->id == 1? 2 : 1;
+    int result = checkWin(gamestate.board, settings->R, settings->C, 1);
+    int horizontalLose = player->id == 1 && result == 8 || player->id == 2 && result == 4;
+    int verticalLose = player->id == 1 && result == 9 || player->id == 2 && result == 5;
+    int diagonalLose = player->id == 1 && result == 10 || player->id == 2 && result == 6;
+    if(horizontalLose || verticalLose || diagonalLose) return j;
+    gamestate.board[k][j] = 0;
+  }
+  int worth[12] = {0};
+  int maxWorth = 0;
+  int maxWorthJ = -1;
+  for(int index = 0; index < len; index++){
+    int j = vacant[index];
+    int i = height[index];
+    int row, col;
+    if(row < settings->R - 1){
+      worth[index] += gamestate.board[i+1][j] == 0? 1 : gamestate.board[i+1][j] == player->id ? 3 : 2;
+      if(j < settings->C - 1) worth[index] += gamestate.board[i+1][j+1] == 0? 1 : gamestate.board[i+1][j+1] == player->id ? 3 : 2;
+      if(j > 0) worth[index] += gamestate.board[i+1][j-1] == 0? 1 : gamestate.board[i+1][j-1] == player->id ? 3 : 2;
+    }
+    if(row > 0){
+      worth[index] += gamestate.board[i-1][j] == 0? 1 : gamestate.board[i-1][j] == player->id ? 3 : 2;
+      if(j < settings->C - 1) worth[index] += gamestate.board[i-1][j+1] == 0? 1 : gamestate.board[i-1][j+1] == player->id ? 3 : 2;
+      if(j > 0) worth[index] += gamestate.board[i-1][j-1] == 0? 1 : gamestate.board[i-1][j-1] == player->id ? 3 : 2;
+    }
+    if(j < settings->C - 1) worth[index] += gamestate.board[i][j+1] == 0? 1 : gamestate.board[i][j+1] == player->id ? 3 : 2;
+    if(j > 0) worth[index] += gamestate.board[i][j-1] == 0? 1 : gamestate.board[i][j-1] == player->id ? 3 : 2;
+    if(worth[i] > maxWorth) {maxWorth = worth[i]; maxWorthJ = j;}
+  }
+  if(maxWorthJ == -1 || maxWorth <= 4) return vacant[(int)len/2];
+  if(maxWorth <= 5 && (rand() % 100) > 50) return vacant[(int)len/2];
+  return maxWorthJ;
 }
 
 int aiMoveHard(const GameState *st, Player *player, Settings *settings){
@@ -270,7 +326,7 @@ int main(){
   int R = 8, C = 8;
   char token;
   char token2;
-  int gamemode;
+  int gamemode, difficulty;
   printf("====> Enter the dimensions of the board\nNumber of columns:\n-> ");
   scanf(" %d", &C);
   printf("Number of rows:\n-> ");
@@ -282,6 +338,9 @@ int main(){
   printf("====> Game Modes\n1. Player VS Computer\n2. Player VS Player\n-> ");
   scanf("%d", &gamemode);
   gamemode--;
+  printf("====> Difficulty\n1. Easy\n2. Medium\n-> ");
+  scanf("%d", difficulty);
+  difficulty--;
   printf("\n");
 
   OnEnd onEnd = endHandler;
@@ -299,13 +358,14 @@ int main(){
   settings.R = R;
   settings.C = C;
   settings.gamemode = gamemode;
+  settings.difficulty = difficulty;
 
   Player player1, player2;
   player1.id = 1;
   player1.move = humanMove;
   player1.token = token;
   player2.id = 2;
-  player2.move = gamemode == humanVsComputer? aiMoveEasy : humanMove;
+  player2.move = gamemode == humanVsComputer? difficulty == easy? aiMoveEasy : aiMoveMedium : humanMove;
   player2.token = token2;
   
   printBoard(gameState.board, R, C, player1.token, player2.token);
