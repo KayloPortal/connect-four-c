@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include "datatypes.h"
+#include <stdlib.h>
+#include <time.h>
 
 #define maxR 12
 #define maxC 12
@@ -29,13 +31,16 @@ int putToken(int board[12][12], int R, int C, int col, int playerNumber){
   return -2;
 }
 
-int checkWin(int board[12][12], int R, int C){
+// returnType == 0: player1 win: 1 : player2 win: 2
+// returnType == 1: player1 win: 4(horizontal match) 5(vertical match) 6(diagonal match)
+// returnType == 1: player1 win: 8, 9, 10
+int checkWin(int board[12][12], int R, int C, int returnType){
   // Check horizontal
   for(int i = 0; i < R; i++){
     int countFirst = 0, countSecond = 0;
     for(int j = 0; j < C; j++){
-      if (countFirst == 4) return 1;
-      else if (countSecond == 4) return 2;
+      if (countFirst == 4) return 1 + (returnType == 1? 3 : 0);
+      else if (countSecond == 4) return 2 + (returnType == 1? 6 : 0);
       
       if (board[i][j] == 1) countFirst++;
       else countFirst = 0;
@@ -43,15 +48,15 @@ int checkWin(int board[12][12], int R, int C){
       if(board[i][j] == 2) countSecond++;
       else countSecond = 0;
     }
-    if (countFirst == 4) return 1;
-    else if (countSecond == 4) return 2;
+    if (countFirst == 4) return 1 + (returnType == 1? 3 : 0);
+    else if (countSecond == 4) return 2 + (returnType == 1? 6 : 0);
   }
   // Check vertical
   for(int j = 0; j < C; j++){
     int countFirst = 0, countSecond = 0;
     for(int i = 0; i < R; i++){
-      if (countFirst == 4) return 1;
-      else if (countSecond == 4) return 2;
+      if (countFirst == 4) return 1 + (returnType == 1? 4 : 0);
+      else if (countSecond == 4) return 2 + (returnType == 1? 7 : 0);
 
       if (board[i][j] == 1) countFirst++;
       else countFirst = 0;
@@ -59,15 +64,15 @@ int checkWin(int board[12][12], int R, int C){
       if(board[i][j] == 2) countSecond++;
       else countSecond = 0;
     }
-    if (countFirst == 4) return 1;
-    else if (countSecond == 4) return 2;
+    if (countFirst == 4) return 1  + (returnType == 1? 4 : 0);
+    else if (countSecond == 4) return 2  + (returnType == 1? 7 : 0);
   }
   // Check diagonal (top-left to bottom-right)
   for(int j = 0; j < C - 3; j++){
     int countFirst = 0, countSecond = 0;
     for(int i = 0, k = j; i < R && k < C; i++, k++){
-      if (countFirst == 4) return 1;
-      else if (countSecond == 4) return 2;
+      if (countFirst == 4) return 1 + (returnType == 1? 5 : 0);
+      else if (countSecond == 4) return 2 + (returnType == 1? 8 : 0);
 
       if (board[i][k] == 1) countFirst++;
       else countFirst = 0;
@@ -75,14 +80,14 @@ int checkWin(int board[12][12], int R, int C){
       if(board[i][k] == 2) countSecond++;
       else countSecond = 0;
     }
-    if (countFirst == 4) return 1;
-    else if (countSecond == 4) return 2;
+    if (countFirst == 4) return 1 + (returnType == 1? 5 : 0);
+    else if (countSecond == 4) return 2 + (returnType == 1? 8 : 0);
   }
   for(int j = C - 1; j > 2; j--){
     int countFirst = 0, countSecond = 0;
     for(int i = R - 1, k = j; i >= 0 && k >=0; i--, k--){
-      if (countFirst == 4) return 1;
-      else if (countSecond == 4) return 2;
+      if (countFirst == 4) return 1 + (returnType == 1? 5 : 0);
+      else if (countSecond == 4) return 2 + (returnType == 1? 8 : 0);
 
       if (board[i][k] == 1) countFirst++;
       else countFirst = 0;
@@ -90,15 +95,15 @@ int checkWin(int board[12][12], int R, int C){
       if(board[i][k] == 2) countSecond++;
       else countSecond = 0;
     }
-    if (countFirst == 4) return 1;
-    else if (countSecond == 4) return 2;
+    if (countFirst == 4) return 1 + (returnType == 1? 5 : 0);
+    else if (countSecond == 4) return 2 + (returnType == 1? 8 : 0);
   }
   // Check diagonal (bottom-left to top-right)
   for(int j = C - 1; j > 2; j--){
     int countFirst = 0, countSecond = 0;
     for(int i = 0, k = j; i < R && k >= 0; i++, k--){
-      if (countFirst == 4) return 1;
-      else if (countSecond == 4) return 2;
+      if (countFirst == 4) return 1  + (returnType == 1? 5 : 0);
+      else if (countSecond == 4) return 2 + (returnType == 1? 8 : 0);
 
       if (board[i][k] == 1) countFirst++;
       else countFirst = 0;
@@ -106,14 +111,14 @@ int checkWin(int board[12][12], int R, int C){
       if(board[i][k] == 2) countSecond++;
       else countSecond = 0;
     }
-    if (countFirst == 4) return 1;
-    else if (countSecond == 4) return 2;
+    if (countFirst == 4) return 1 + (returnType == 1? 5 : 0);
+    else if (countSecond == 4) return 2 + (returnType == 1? 8 : 0);
   }
   for(int i = 0; i < R - 3; i++){
     int countFirst = 0, countSecond = 0;
     for(int z = i, j = C - 1; z < R && j >= 0  ; j--, z++){
-      if (countFirst == 4) return 1;
-      else if (countSecond == 4) return 2;
+      if (countFirst == 4) return 1 + (returnType == 1? 5 : 0);
+      else if (countSecond == 4) return 2 + (returnType == 1? 8 : 0);
 
       if (board[z][j] == 1) countFirst++;
       else countFirst = 0;
@@ -121,8 +126,8 @@ int checkWin(int board[12][12], int R, int C){
       if(board[z][j] == 2) countSecond++;
       else countSecond = 0;
     }
-    if (countFirst == 4) return 1;
-    else if (countSecond == 4) return 2;
+    if (countFirst == 4) return 1 + (returnType == 1? 5 : 0);
+    else if (countSecond == 4) return 2 + (returnType == 1? 8 : 0);
   }
   return 0;
 }
@@ -142,7 +147,7 @@ int engine(GameState *gameState, OnEnd onEnd, Settings *settings, OnContinue onC
     int selectedColumn, status, win;
 
     // PLayer 1's turn
-    selectedColumn = player1->move(gameState, player1);
+    selectedColumn = player1->move(gameState, player1, settings);
     
     status = -3; // No selected column
     while(status < 0){
@@ -150,7 +155,7 @@ int engine(GameState *gameState, OnEnd onEnd, Settings *settings, OnContinue onC
       if(status == -1 || status == -2) selectedColumn = onWrongColumn(status == -2, status == -1);
     }
     
-    win = checkWin(gameState->board, settings->R, settings->C);
+    win = checkWin(gameState->board, settings->R, settings->C, 0);
     if(win == 1) {onEnd(gameState, 0, player1, settings, player2); break;}
     else if(win == 2){onEnd(gameState, 0, player2, settings, player1); break;}
     else {
@@ -159,7 +164,7 @@ int engine(GameState *gameState, OnEnd onEnd, Settings *settings, OnContinue onC
     }
 
     // PLayer 2's turn
-    selectedColumn = player2->move(gameState, player2);
+    selectedColumn = player2->move(gameState, player2, settings);
 
     status = -3; // No selected column
     while(status < 0){
@@ -167,7 +172,7 @@ int engine(GameState *gameState, OnEnd onEnd, Settings *settings, OnContinue onC
       if(status == -1 || status == -2) selectedColumn = onWrongColumn(status == -2, status == -1);
     }
     
-    win = checkWin(gameState->board, settings->R, settings->C);
+    win = checkWin(gameState->board, settings->R, settings->C, 0);
     if(win == 1) {onEnd(gameState, 0, player1, settings, player2); break;}
     else if(win == 2){onEnd(gameState, 0, player2, settings, player1); break;}
     else {
@@ -200,24 +205,48 @@ int wrongColumnHandler(int isFull, int isInvalid){
   return sel - 1;
 }
 
-int humanMove(const GameState *st, Player *player){
+int humanMove(const GameState *st, Player *player, Settings *settings){
   printf("It's player %d's turn, please enter a column: ", player->id);
   int sel;
   scanf("%d", &sel);
   return sel - 1;
 }
 
-int aiMoveEasy(const GameState *st, Player *player){
+int aiMoveEasy(const GameState *st, Player *player, Settings *settings){
+  srand(time(NULL));
+  // to write
+  GameState gamestate = *st;
+  int vacant[12];
+  int len = 0;
+  for(int j = 0; j < settings->C; j++){
+    if(gamestate.board[0][j] == 0) vacant[len++] = j;
+  }
+  for(int i = 0; i < len; i++){
+    int j = vacant[i];
+    gamestate.board[0][j] = player->id;
+    int result = checkWin(gamestate.board, settings->R, settings->C, 0);
+    if(result == player->id && (rand() % 100) > 20) return j;
+    gamestate.board[0][j] = 0;
+  }
+  for(int i = 0; i < len; i++){
+    int j = vacant[i];
+    gamestate.board[0][j] = player->id == 1? 2 : 1;
+    int result = checkWin(gamestate.board, settings->R, settings->C, 1);
+    int horizontalLose = player->id == 1 && result == 8 || player->id == 2 && result == 4;
+    int verticalLose = player->id == 1 && result == 9 || player->id == 2 && result == 5;
+    int diagonalLose = player->id == 1 && result == 10 || player->id == 2 && result == 6;
+    if((horizontalLose || verticalLose) && ((rand() % 100) > 30)) return j;
+    if(diagonalLose && ((rand() % 100) > 70)) return j;
+  }
+  return vacant[rand() % len];
+}
+
+int aiMoveMedium(const GameState *st, Player *player, Settings *settings){
   // to write
   return 1;
 }
 
-int aiMoveMedium(const GameState *st, Player *player){
-  // to write
-  return 1;
-}
-
-int aiMoveHard(const GameState *st, Player *player){
+int aiMoveHard(const GameState *st, Player *player, Settings *settings){
   // to write
   return 1;
 }
@@ -231,17 +260,20 @@ int main(){
   int R = 8, C = 8;
   char token;
   char token2;
-  printf("Enter the dimensions of the board\nNumber of columns: ");
+  int gamemode;
+  printf("====> Enter the dimensions of the board\nNumber of columns:\n-> ");
   scanf(" %d", &C);
-  printf("Number of rows: ");
+  printf("Number of rows:\n-> ");
   scanf(" %d", &R);
-  printf("Choose your token: ");
+  printf("====> Choose your token:\n-> ");
   scanf(" %c", &token);
-  printf("Choose your opponent's token: ");
+  printf("====> Choose your opponent's token:\n-> ");
   scanf(" %c", &token2);
+  printf("====> Game Modes\n1. Player VS Computer\n2. Player VS Player\n-> ");
+  scanf("%d", &gamemode);
+  gamemode--;
   printf("\n");
 
-  MoveFn player1Move, player2Move;
   OnEnd onEnd = endHandler;
   OnContinue onContinue = continueHandler;
   OnWrongColumn onWrongColumn = wrongColumnHandler;
@@ -256,14 +288,14 @@ int main(){
   Settings settings;
   settings.R = R;
   settings.C = C;
-  settings.gamemode = humanVsHuman;
+  settings.gamemode = gamemode;
 
   Player player1, player2;
   player1.id = 1;
   player1.move = humanMove;
   player1.token = token;
   player2.id = 2;
-  player2.move = humanMove;
+  player2.move = gamemode == humanVsComputer? aiMoveEasy : humanMove;
   player2.token = token2;
   
   printBoard(gameState.board, R, C, player1.token, player2.token);

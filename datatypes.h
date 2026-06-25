@@ -5,9 +5,9 @@ typedef struct {
 } GameState;
 
 typedef enum {
-  humanVsHuman,
   humanVsComputer,
-  fileInputMode,
+  humanVsHuman,
+  fileInputMode
 } GameMode;
 
 typedef enum {
@@ -25,7 +25,7 @@ typedef struct {
 
 typedef struct Player Player;
 
-typedef int (*MoveFn)(const GameState *st, Player *player);
+typedef int (*MoveFn)(const GameState *st, Player *player, Settings *settings);
 struct Player {
   MoveFn move;
   void *ctx;
