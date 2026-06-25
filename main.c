@@ -136,12 +136,6 @@ int checkFull(int board[12][12], int R, int C){
 
 int engine(GameState *gameState, OnEnd onEnd, Settings *settings, OnContinue onContinue,
   Player *player1, Player *player2, OnWrongColumn onWrongColumn){
-  // Initialize
-  for(int i = 0; i < settings->R; i++){
-    for(int j = 0; j < settings->C; j++){
-      gameState->board[i][j] = 0;
-    }
-  }
 
   while(1){
     // Process Moves
@@ -160,7 +154,7 @@ int engine(GameState *gameState, OnEnd onEnd, Settings *settings, OnContinue onC
     if(win == 1) {onEnd(gameState, 0, player1, settings, player2); break;}
     else if(win == 2){onEnd(gameState, 0, player2, settings, player1); break;}
     else {
-      if(checkFull(gameState->board, settings->R, settings->C)) onEnd(gameState, 1, player1, settings, player2);
+      if(checkFull(gameState->board, settings->R, settings->C)){onEnd(gameState, 1, player1, settings, player2); break;}
       else onContinue(gameState, settings, player1, player2);
     }
 
@@ -177,7 +171,7 @@ int engine(GameState *gameState, OnEnd onEnd, Settings *settings, OnContinue onC
     if(win == 1) {onEnd(gameState, 0, player1, settings, player2); break;}
     else if(win == 2){onEnd(gameState, 0, player2, settings, player1); break;}
     else {
-      if(checkFull(gameState->board, settings->R, settings->C)) onEnd(gameState, 1, player1, settings, player2);
+      if(checkFull(gameState->board, settings->R, settings->C)){onEnd(gameState, 1, player1, settings, player2); break;}
       else onContinue(gameState, settings, player1, player2);
     }
   }
