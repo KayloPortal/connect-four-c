@@ -207,7 +207,17 @@ int humanMove(const GameState *st, Player *player){
   return sel - 1;
 }
 
-int aiMove(const GameState *st, Player *player){
+int aiMoveEasy(const GameState *st, Player *player){
+  // to write
+  return 1;
+}
+
+int aiMoveMedium(const GameState *st, Player *player){
+  // to write
+  return 1;
+}
+
+int aiMoveHard(const GameState *st, Player *player){
   // to write
   return 1;
 }
