@@ -5,6 +5,7 @@
 #define maxC 12
 
 int printBoard(const int board[12][12], int R, int C, char token1, char token2){
+  printf("\n");
   for (int i = 0; i < R; i++) {
     for (int j = 0; j < C; j++) {
       if(board[i][j] == 1) printf(" %c ", token1);
