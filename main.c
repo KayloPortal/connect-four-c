@@ -214,29 +214,38 @@ int humanMove(const GameState *st, Player *player, Settings *settings){
 
 int aiMoveEasy(const GameState *st, Player *player, Settings *settings){
   srand(time(NULL));
-  // to write
   GameState gamestate = *st;
   int vacant[12];
+  int height[12];
   int len = 0;
   for(int j = 0; j < settings->C; j++){
-    if(gamestate.board[0][j] == 0) vacant[len++] = j;
+    if(gamestate.board[0][j] == 0){
+      vacant[len] = j;
+      height[len] = 0;
+      int index = settings->R - 1;
+      while(index >= 0 && gamestate.board[index--][j] != 0) height[len]++;
+      len++;
+    }
   }
   for(int i = 0; i < len; i++){
     int j = vacant[i];
-    gamestate.board[0][j] = player->id;
+    int k = height[i] + 1;
+    gamestate.board[k][j] = player->id;
     int result = checkWin(gamestate.board, settings->R, settings->C, 0);
     if(result == player->id && (rand() % 100) > 20) return j;
-    gamestate.board[0][j] = 0;
+    gamestate.board[k][j] = 0;
   }
   for(int i = 0; i < len; i++){
     int j = vacant[i];
-    gamestate.board[0][j] = player->id == 1? 2 : 1;
+    int k = height[i] + 1;
+    gamestate.board[k][j] = player->id == 1? 2 : 1;
     int result = checkWin(gamestate.board, settings->R, settings->C, 1);
     int horizontalLose = player->id == 1 && result == 8 || player->id == 2 && result == 4;
     int verticalLose = player->id == 1 && result == 9 || player->id == 2 && result == 5;
     int diagonalLose = player->id == 1 && result == 10 || player->id == 2 && result == 6;
     if((horizontalLose || verticalLose) && ((rand() % 100) > 30)) return j;
     if(diagonalLose && ((rand() % 100) > 70)) return j;
+    gamestate.board[k][j] = 0;
   }
   return vacant[rand() % len];
 }

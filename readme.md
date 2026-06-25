@@ -1,5 +1,10 @@
 # Connect Four Game - TUI
 
+## AI Smartness & Game Difficulty
+Game's AI comes in three difficulty levels, Easy, Medium and Hard.
+
+### Easy Mode
+
 ## Implementation Details
 
 ### Board
