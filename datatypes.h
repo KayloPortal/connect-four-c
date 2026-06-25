@@ -36,9 +36,8 @@ struct Player {
 typedef int (*BoardExportFn)(const GameState *st);
 
 typedef void (*OnContinue)(const GameState *st,
-Settings *settings);
+Settings *settings, Player *player1, Player *player2);
 
 typedef int (*OnWrongColumn)(int isFull, int isInvalid);
-
-typedef void (*OnEnd)(const GameState *st, Player *winner,
-Settings *settings);
+typedef void (*OnEnd)(const GameState *st, int isDraw, Player *winner,
+Settings *settings, Player *loser);

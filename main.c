@@ -4,11 +4,11 @@
 #define maxR 12
 #define maxC 12
 
-int printBoard(const int board[12][12], int R, int C){
+int printBoard(const int board[12][12], int R, int C, char token1, char token2){
   for (int i = 0; i < R; i++) {
     for (int j = 0; j < C; j++) {
-      if(board[i][j] == 1) printf(" X ");
-      else if(board[i][j] == 2) printf(" O ");
+      if(board[i][j] == 1) printf(" %c ", token1);
+      else if(board[i][j] == 2) printf(" %c ", token2);
       else printf(" _ ");
     }
     printf("\n");
@@ -151,16 +151,16 @@ int engine(GameState *gameState, OnEnd onEnd, Settings *settings, OnContinue onC
     
     status = -3; // No selected column
     while(status < 0){
-      status = putToken(gameState->board, settings->R, settings->C, selectedColumn, player1->token == 'X'? 1 : 2);
+      status = putToken(gameState->board, settings->R, settings->C, selectedColumn, player1->id);
       if(status == -1 || status == -2) selectedColumn = onWrongColumn(status == -2, status == -1);
     }
     
     win = checkWin(gameState->board, settings->R, settings->C);
-    if(win == 1) {onEnd(gameState, player1->token == 'X' ? player1 : player2, settings); break;}
-    else if(win == 2){onEnd(gameState, player1->token == 'O' ? player1 : player2, settings); break;}
+    if(win == 1) {onEnd(gameState, 0, player1, settings, player2); break;}
+    else if(win == 2){onEnd(gameState, 0, player2, settings, player1); break;}
     else {
-      if(checkFull(gameState->board, settings->R, settings->C)) onEnd(gameState, NULL, settings);
-      else onContinue(gameState, settings);
+      if(checkFull(gameState->board, settings->R, settings->C)) onEnd(gameState, 1, player1, settings, player2);
+      else onContinue(gameState, settings, player1, player2);
     }
 
     // PLayer 2's turn
@@ -168,30 +168,32 @@ int engine(GameState *gameState, OnEnd onEnd, Settings *settings, OnContinue onC
 
     status = -3; // No selected column
     while(status < 0){
-      status = putToken(gameState->board, settings->R, settings->C, selectedColumn, player2->token == 'X'? 1 : 2);
+      status = putToken(gameState->board, settings->R, settings->C, selectedColumn, player2->id);
       if(status == -1 || status == -2) selectedColumn = onWrongColumn(status == -2, status == -1);
     }
     
     win = checkWin(gameState->board, settings->R, settings->C);
-    if(win == 1) {onEnd(gameState, player1->token == 'X' ? player1 : player2, settings); break;}
-    else if(win == 2){onEnd(gameState, player1->token == 'O' ? player1 : player2, settings); break;}
+    if(win == 1) {onEnd(gameState, 0, player1, settings, player2); break;}
+    else if(win == 2){onEnd(gameState, 0, player2, settings, player1); break;}
     else {
-      if(checkFull(gameState->board, settings->R, settings->C)) onEnd(gameState, NULL, settings);
-      else onContinue(gameState, settings);
+      if(checkFull(gameState->board, settings->R, settings->C)) onEnd(gameState, 1, player1, settings, player2);
+      else onContinue(gameState, settings, player1, player2);
     }
   }
 
   return 0;
 }
 
-void endHandler(const GameState *st, Player *winner, Settings *settings){
-  printBoard(st->board, settings->R, settings->C);
-  if(winner == NULL) printf("It's a Draw!\n");
+void endHandler(const GameState *st, int isDraw, Player *winner, Settings *settings, Player *loser){
+  char token1 = winner->id == 1? winner->token : loser->token;
+  char token2 = winner->id == 2? winner->token : loser->token;
+  printBoard(st->board, settings->R, settings->C, token1, token2);
+  if(isDraw == 1) printf("It's a Draw!\n");
   else(printf("Player %d won the match!\n", winner->id));
 }
 
-void continueHandler(const GameState *st, Settings *settings){
-  printBoard(st->board, settings->R, settings->C);
+void continueHandler(const GameState *st, Settings *settings, Player *player1, Player *player2){
+  printBoard(st->board, settings->R, settings->C, player1->token, player2->token);
 }
 
 int wrongColumnHandler(int isFull, int isInvalid){
@@ -223,12 +225,15 @@ int fileDrivenMove(){
 int main(){  
   int R = 8, C = 8;
   char token;
+  char token2;
   printf("Enter the dimensions of the board\nNumber of columns: ");
   scanf(" %d", &C);
   printf("Number of rows: ");
   scanf(" %d", &R);
   printf("Choose your token: ");
   scanf(" %c", &token);
+  printf("Choose your opponent's token: ");
+  scanf(" %c", &token2);
   printf("\n");
 
   MoveFn player1Move, player2Move;
@@ -254,9 +259,9 @@ int main(){
   player1.token = token;
   player2.id = 2;
   player2.move = humanMove;
-  player2.token = token == 'X'? 'O' : 'X';
+  player2.token = token2;
   
-  printBoard(gameState.board, R, C);
+  printBoard(gameState.board, R, C, player1.token, player2.token);
   engine(&gameState, onEnd, &settings, onContinue, &player1, &player2, onWrongColumn);
 
   // int currentToken = 1;
