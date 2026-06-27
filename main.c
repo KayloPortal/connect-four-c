@@ -154,7 +154,8 @@ int engine(GameState *gameState, OnEnd onEnd, Settings *settings, OnContinue onC
       status = putToken(gameState->board, settings->R, settings->C, selectedColumn, player1->id);
       if(status == -1 || status == -2) selectedColumn = onWrongColumn(status == -2, status == -1);
     }
-    
+    settings->moves[settings->movesLen] = selectedColumn;
+    settings->movesLen += 1;
     win = checkWin(gameState->board, settings->R, settings->C, 0);
     if(win == 1) {onEnd(gameState, 0, player1, settings, player2); break;}
     else if(win == 2){onEnd(gameState, 0, player2, settings, player1); break;}
@@ -171,7 +172,8 @@ int engine(GameState *gameState, OnEnd onEnd, Settings *settings, OnContinue onC
       status = putToken(gameState->board, settings->R, settings->C, selectedColumn, player2->id);
       if(status == -1 || status == -2) selectedColumn = onWrongColumn(status == -2, status == -1);
     }
-    
+    settings->moves[settings->movesLen] = selectedColumn;
+    settings->movesLen += 1;
     win = checkWin(gameState->board, settings->R, settings->C, 0);
     if(win == 1) {onEnd(gameState, 0, player1, settings, player2); break;}
     else if(win == 2){onEnd(gameState, 0, player2, settings, player1); break;}
@@ -190,6 +192,23 @@ void endHandler(const GameState *st, int isDraw, Player *winner, Settings *setti
   printBoard(st->board, settings->R, settings->C, token1, token2);
   if(isDraw == 1) printf("It's a Draw!\n");
   else(printf("Player %d won the match!\n", winner->id));
+  char ans;
+  printf("Do you want to save this replay?(y/n)\n-> ");
+  scanf(" %c", &ans);
+  if(ans == 'y' || ans == 'Y'){
+    if(settings->replayFilePtr == NULL) settings->replayFilePtr = fopen("replay.txt", "a");
+    char name[101];
+    printf("Enter the name for the replay(maximum 100 characters)\n-> ");
+    scanf("%s", name);
+    fprintf(settings->replayFilePtr, "replay\n");
+    fprintf(settings->replayFilePtr, "%d\n%d\n", settings->R, settings->C);
+    fprintf(settings->replayFilePtr, name);
+    fprintf(settings->replayFilePtr, "\n");
+    for(int i = 0; settings->moves[i] != -1; i++){
+      fprintf(settings->replayFilePtr, "%d\n", settings->moves[i]);
+    }
+    fprintf(settings->replayFilePtr, "endreplay\n");
+  }
 }
 
 void continueHandler(const GameState *st, Settings *settings, Player *player1, Player *player2){
@@ -351,6 +370,7 @@ int main(){
   char token2;
   int gamemode, difficulty;
   FILE *fptr = NULL;
+  FILE *replay = NULL;
   char addr[100];
   printf("====> Enter the dimensions of the board\n");
   while(C < 4 || C > 12){
@@ -369,7 +389,7 @@ int main(){
   scanf("%d", &gamemode);
   gamemode--;
   while(gamemode == fileInputMode){
-    printf("Please enter the address of the input file(maximum 100 characters): ");
+    printf("Please enter the address of the input file(maximum 100 characters):\n-> ");
     scanf("%s", addr);
     fptr = fopen(addr, "r");
     if (fptr == NULL) printf("INVALID ADDRESS!\n");
@@ -398,7 +418,10 @@ int main(){
   settings.C = C;
   settings.gamemode = gamemode;
   settings.difficulty = difficulty;
-  if(gamemode == fileInputMode) settings.inputFilePtr = fptr;
+  settings.inputFilePtr = fptr;
+  settings.replayFilePtr = replay;
+  for(int i = 0; i < 150; i++) settings.moves[i] = -1;
+  settings.movesLen = 0;
 
   Player player1, player2;
   player1.id = 1;

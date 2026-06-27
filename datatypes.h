@@ -22,6 +22,9 @@ typedef struct {
   int R;
   int C;
   FILE *inputFilePtr;
+  FILE *replayFilePtr;
+  int moves[150];
+  int movesLen;
 } Settings;
 
 typedef struct Player Player;

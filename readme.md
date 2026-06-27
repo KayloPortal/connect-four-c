@@ -57,6 +57,6 @@ The engine function lifecycle is as below:
 - Receive the parameters, such as the current configuration of the board(it can be any configuration, meaning you can start the game at different starting points, but it needs to be player one's turn, and the board should not be full)
 - Run the move functions of the player whos turn is right now to receive their selection.
 - Try to put their token at the selected columns, if failure, run the wrongColumnHandler to get the new selected column, and continue this until you are given a valid selected column.
-- Now that the token is placed, check if the game has ended. If ended, run the end handler function, and break out of the loop, and if not, run the continue handler function
+- Now that the token is placed, this column selection is saved in an array to be used in case you choose the save the game's replay at the end. The engine will run the checkWin function to check if the game has ended, If ended, it will run the end-handler function, and break out of the loop, and if not, it will call the continue-handler function.
 - Repeat this for the other player
 - Repeat the process again until the game ends.
