@@ -329,9 +329,19 @@ int aiMoveHard(const GameState *st, Player *player, Settings *settings){
   return 1;
 }
 
-int fileDrivenMove(){
-  // to write
-  return 1;
+int parseInt(char string[]){
+  int a1 = string[0] - '0';
+  if (string[1] != '\0' && (string[1] - '0') >= 0 && (string[1] - '0') <= 9){
+    int a0 = string[1] - '0';
+    return 10 * a1 + a0;
+  }
+  return a1;
+}
+
+int fileDrivenMove(const GameState *st, Player *player, Settings *settings){
+  char string[4];
+  fgets(string, 4, settings->inputFilePtr);
+  return parseInt(string) - 1;
 }
 
 int main(){  
@@ -340,25 +350,36 @@ int main(){
   char token;
   char token2;
   int gamemode, difficulty;
+  FILE *fptr = NULL;
+  char addr[100];
   printf("====> Enter the dimensions of the board\n");
   while(C < 4 || C > 12){
-    printf("Number of columns(must be between 4-12):\n->");
+    printf("Number of columns(must be between 4-12):\n-> ");
     scanf(" %d", &C);
   }
   while(R < 4 || R > 12){
     printf("Number of rows(must be between 4-12):\n-> ");
     scanf(" %d", &R);
   }
-  printf("====> Choose your token:\n-> ");
+  printf("====> Choose player 1's token:\n-> ");
   scanf(" %c", &token);
-  printf("====> Choose your opponent's token:\n-> ");
+  printf("====> Choose player 2's token:\n-> ");
   scanf(" %c", &token2);
-  printf("====> Game Modes\n1. Player VS Computer\n2. Player VS Player\n-> ");
+  printf("====> Game Modes\n1. Player VS Computer\n2. Player VS Player\n3. File Input Mode\n-> ");
   scanf("%d", &gamemode);
   gamemode--;
-  printf("====> Difficulty\n1. Easy\n2. Medium\n-> ");
-  scanf("%d", &difficulty);
-  difficulty--;
+  while(gamemode == fileInputMode){
+    printf("Please enter the address of the input file(maximum 100 characters): ");
+    scanf("%s", addr);
+    fptr = fopen(addr, "r");
+    if (fptr == NULL) printf("INVALID ADDRESS!\n");
+    else break;
+  }
+  if(gamemode == humanVsComputer){
+    printf("====> Difficulty\n1. Easy\n2. Medium\n-> ");
+    scanf("%d", &difficulty);
+    difficulty--;
+  }
   printf("\n");
 
   OnEnd onEnd = endHandler;
@@ -377,13 +398,16 @@ int main(){
   settings.C = C;
   settings.gamemode = gamemode;
   settings.difficulty = difficulty;
+  if(gamemode == fileInputMode) settings.inputFilePtr = fptr;
 
   Player player1, player2;
   player1.id = 1;
-  player1.move = humanMove;
+  player1.move = gamemode == fileInputMode? fileDrivenMove : humanMove;
   player1.token = token;
   player2.id = 2;
-  player2.move = gamemode == humanVsComputer? difficulty == 0? aiMoveEasy : aiMoveMedium : humanMove;
+  player2.move = gamemode == humanVsComputer
+  ? difficulty == 0? aiMoveEasy : aiMoveMedium 
+  : gamemode == fileInputMode? fileDrivenMove : humanMove;
   player2.token = token2;
   printBoard(gameState.board, R, C, player1.token, player2.token);
   engine(&gameState, onEnd, &settings, onContinue, &player1, &player2, onWrongColumn);

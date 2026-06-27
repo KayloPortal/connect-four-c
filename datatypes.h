@@ -21,6 +21,7 @@ typedef struct {
   GameMode gamemode;
   int R;
   int C;
+  FILE *inputFilePtr;
 } Settings;
 
 typedef struct Player Player;
