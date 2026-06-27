@@ -7,7 +7,8 @@ typedef struct {
 typedef enum {
   humanVsComputer,
   humanVsHuman,
-  fileInputMode
+  fileInputMode,
+  replayMode
 } GameMode;
 
 typedef enum {
@@ -25,6 +26,8 @@ typedef struct {
   FILE *replayFilePtr;
   int moves[150];
   int movesLen;
+  long int selectedReplayId;
+  int isReplayLoaded;
 } Settings;
 
 typedef struct Player Player;

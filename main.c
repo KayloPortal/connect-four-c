@@ -2,6 +2,7 @@
 #include "datatypes.h"
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 #define maxR 12
 #define maxC 12
@@ -192,22 +193,31 @@ void endHandler(const GameState *st, int isDraw, Player *winner, Settings *setti
   printBoard(st->board, settings->R, settings->C, token1, token2);
   if(isDraw == 1) printf("It's a Draw!\n");
   else(printf("Player %d won the match!\n", winner->id));
-  char ans;
-  printf("Do you want to save this replay?(y/n)\n-> ");
-  scanf(" %c", &ans);
-  if(ans == 'y' || ans == 'Y'){
-    if(settings->replayFilePtr == NULL) settings->replayFilePtr = fopen("replay.txt", "a");
-    char name[101];
-    printf("Enter the name for the replay(maximum 100 characters)\n-> ");
-    scanf("%s", name);
-    fprintf(settings->replayFilePtr, "replay\n");
-    fprintf(settings->replayFilePtr, "%d\n%d\n", settings->R, settings->C);
-    fprintf(settings->replayFilePtr, name);
-    fprintf(settings->replayFilePtr, "\n");
-    for(int i = 0; settings->moves[i] != -1; i++){
-      fprintf(settings->replayFilePtr, "%d\n", settings->moves[i]);
+  if(settings->replayFilePtr != NULL) fclose(settings->replayFilePtr);
+  if(settings->gamemode != replayMode){
+    char ans;
+    printf("Do you want to save this replay?(y/n)\n-> ");
+    scanf(" %c", &ans);
+    if(ans == 'y' || ans == 'Y'){
+      settings->replayFilePtr = fopen("replay.txt", "a");
+      char name[101];
+      printf("Enter the name for the replay(maximum 100 characters)\n-> ");
+      scanf(" %[^\n]", name);
+      while(strcmp(name, "replay[") == 0 || strcmp(name, "]endreplay") == 0){
+        printf("This name is not available and is reserved for game functioning purposes. Please choose another name.\n-> ");
+        scanf("%s", name);
+      }
+      fprintf(settings->replayFilePtr, "replay[\n");
+      fprintf(settings->replayFilePtr, "%d\n%d\n", settings->R, settings->C);
+      fprintf(settings->replayFilePtr, name);
+      fprintf(settings->replayFilePtr, "\n");
+      fprintf(settings->replayFilePtr, "%ld\n", time(NULL));
+      for(int i = 0; settings->moves[i] != -1; i++){
+        fprintf(settings->replayFilePtr, "%d\n", settings->moves[i]);
+      }
+      fprintf(settings->replayFilePtr, "]endreplay\n");
+      fclose(settings->replayFilePtr);
     }
-    fprintf(settings->replayFilePtr, "endreplay\n");
   }
 }
 
@@ -348,6 +358,36 @@ int aiMoveHard(const GameState *st, Player *player, Settings *settings){
   return 1;
 }
 
+int parseInt(char string[]);
+
+int replayMove(const GameState *st, Player *player, Settings *settings){
+  char line[104];
+  // printf("LOG");
+  while(settings->isReplayLoaded == 0){
+    fgets(line, 104, settings->replayFilePtr);
+    if(strcmp(line, "replay[\n") == 0){
+      fgets(line, 104, settings->replayFilePtr);
+      fgets(line, 104, settings->replayFilePtr);
+      fgets(line, 104, settings->replayFilePtr);
+      char *endptr;
+      char id[104];
+      fgets(id, 104, settings->replayFilePtr);
+      long id_int = strtol(id, &endptr,10);
+      long int id_final_int = id_int;
+      if(settings->selectedReplayId == id_final_int){
+        settings->isReplayLoaded = 1;
+        break;
+      }
+    }
+  }
+  fgets(line, 104, settings->replayFilePtr);
+  // printf("[LOG] LINE %s | LINE INT %d", line, parseInt(line));
+  printf("Enter any character and press Enter to navigate forward:\n-> ");
+  char ch;
+  scanf(" %c", &ch);
+  return parseInt(line);
+}
+
 int parseInt(char string[]){
   int a1 = string[0] - '0';
   if (string[1] != '\0' && (string[1] - '0') >= 0 && (string[1] - '0') <= 9){
@@ -372,28 +412,73 @@ int main(){
   FILE *fptr = NULL;
   FILE *replay = NULL;
   char addr[100];
-  printf("====> Enter the dimensions of the board\n");
-  while(C < 4 || C > 12){
-    printf("Number of columns(must be between 4-12):\n-> ");
-    scanf(" %d", &C);
-  }
-  while(R < 4 || R > 12){
-    printf("Number of rows(must be between 4-12):\n-> ");
-    scanf(" %d", &R);
-  }
   printf("====> Choose player 1's token:\n-> ");
   scanf(" %c", &token);
   printf("====> Choose player 2's token:\n-> ");
   scanf(" %c", &token2);
-  printf("====> Game Modes\n1. Player VS Computer\n2. Player VS Player\n3. File Input Mode\n-> ");
+  printf("====> Game Modes\n1. Player VS Computer\n2. Player VS Player\n3. File Input Mode\n4. Replay Mode\n-> ");
   scanf("%d", &gamemode);
   gamemode--;
   while(gamemode == fileInputMode){
-    printf("Please enter the address of the input file(maximum 100 characters):\n-> ");
+    printf("Please enter the address of the input file(maximum 100 characters) it must be a .txt file:\n-> ");
     scanf("%s", addr);
     fptr = fopen(addr, "r");
     if (fptr == NULL) printf("INVALID ADDRESS!\n");
     else break;
+  }
+  if(gamemode != replayMode){
+    printf("====> Enter the dimensions of the board\n");
+    while(C < 4 || C > 12){
+      printf("Number of columns(must be between 4-12):\n-> ");
+      scanf(" %d", &C);
+    }
+    while(R < 4 || R > 12){
+      printf("Number of rows(must be between 4-12):\n-> ");
+      scanf(" %d", &R);
+    }
+  }
+  int selectedId = -1;
+  if(gamemode == replayMode){
+    FILE *ptr;
+    ptr = fopen("replay.txt", "r");
+    if(ptr == NULL){
+      printf("You have no replays saved on this device. The gamemode will be changed to Player vs Computer.\n");
+      gamemode = humanVsComputer;
+    }
+    else {
+      char line[104];
+      long int ids[100];
+      int Rs[100], Cs[100];
+      int count = 0;
+      char id[104];
+      while(fgets(line, 104, ptr)){
+        if(strcmp(line, "replay[\n") == 0){
+          fgets(line, 104, ptr);
+          Rs[count] = parseInt(line);
+          fgets(line, 104, ptr);
+          Cs[count] = parseInt(line);
+          fgets(line, 104, ptr);
+          fgets(id, 104, ptr);
+          char *endptr;
+          long id_int = strtol(id, &endptr,10);
+          ids[count] = id_int;
+          printf("\t%d. %ld | %s", count + 1, ids[count], line);
+          count++;
+        }
+      }
+      printf("Choose a replay\n-> ");
+      int select = -1;
+      while(1){
+        scanf(" %d", &select);
+        if(select < 1 || select > count) printf("Invalid number. Please enter again:\n-> ");
+        else break;
+      }
+      selectedId = ids[select - 1];
+      R = Rs[select - 1];
+      C = Cs[select - 1];
+    }
+    fclose(ptr);
+    replay = fopen("replay.txt", "r");
   }
   if(gamemode == humanVsComputer){
     printf("====> Difficulty\n1. Easy\n2. Medium\n-> ");
@@ -422,15 +507,21 @@ int main(){
   settings.replayFilePtr = replay;
   for(int i = 0; i < 150; i++) settings.moves[i] = -1;
   settings.movesLen = 0;
+  if(gamemode == replayMode){
+    settings.selectedReplayId = selectedId;
+    settings.isReplayLoaded = 0;
+  }
 
   Player player1, player2;
   player1.id = 1;
-  player1.move = gamemode == fileInputMode? fileDrivenMove : humanMove;
+  player1.move = gamemode == fileInputMode? fileDrivenMove : gamemode == replayMode? replayMove : humanMove;
   player1.token = token;
   player2.id = 2;
   player2.move = gamemode == humanVsComputer
   ? difficulty == 0? aiMoveEasy : aiMoveMedium 
-  : gamemode == fileInputMode? fileDrivenMove : humanMove;
+  : gamemode == fileInputMode
+  ? fileDrivenMove
+  : gamemode == replayMode? replayMove : humanMove;
   player2.token = token2;
   printBoard(gameState.board, R, C, player1.token, player2.token);
   engine(&gameState, onEnd, &settings, onContinue, &player1, &player2, onWrongColumn);
