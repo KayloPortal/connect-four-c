@@ -8,7 +8,7 @@ A *Connect Four* terminal based game written in pure C. The game features:
 
 ## How to Run
 
-### Donwloading the Repo
+### Download the Repo (not recommended)
 Download the repo via *Download Zip* option, or alternatively, clone the repo:
 ```
 git clone https://github.com/KayloPortal/connect-four-c.git
