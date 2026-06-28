@@ -16,12 +16,17 @@ git clone https://github.com/KayloPortal/connect-four-c.git
 
 Then open your prefered terminal, navigate to game's folder, and type:
 ```
-./game.exe
+./game_windows.exe
+```
+
+or if you are on linux:
+```
+./game_linux.exe
 ```
 
 ### Download only `game.exe` (recommended)
 
-The only file needed for the game to work is `game.exe`. You can just download this binary file and not the entire repo, and the game works completely fine. Just note that in case you want to save replays in game, it creates a file named `replay.txt` inside the folder which `game.exe` is located, hence it's a good practice to put the game file `game.exe` inside a new folder.
+The only file needed for the game to work is `game_windows.exe` or `game_linux.exe` depending on your operating system. You can just download this binary file and not the entire repo, and the game works completely fine. Just note that in case you want to save replays in game, it creates a file named `replay.txt` inside the folder which the `.exe` file is located, hence it's a good practice to put the game binary file `.exe` inside a new folder.
 
 ## Table of Contents
 - [AI Smartness & Game Difficulty](#ai-smartness--game-difficulty)
