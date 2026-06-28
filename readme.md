@@ -1,4 +1,41 @@
 # Connect Four Game - TUI
+## Project Summary
+A *Connect Four* terminal based game written in pure C. The game features:
+- **Four Gamemodes:** Player vs Player, Player vs Computer, File input mode, Replay mode
+- **Built-in AI:** Game's AI comes at two difficulty levels: easy and medium
+- **Customization:** Game's boarder size and tokens can be customized and changed by user
+- **Replay:** The ability to save replays after match and review your replays.
+
+## How to Run
+
+### Donwloading the Repo
+Download the repo via *Download Zip* option, or alternatively, clone the repo:
+```
+git clone https://github.com/KayloPortal/connect-four-c.git
+```
+
+Then open your prefered terminal, navigate to game's folder, and type:
+```
+./game.exe
+```
+
+### Download only `game.exe` (recommended)
+
+The only file needed for the game to work is `game.exe`. You can just download this binary file and not the entire repo, and the game works completely fine. Just note that in case you want to save replays in game, it creates a file named `replay.txt` inside the folder which `game.exe` is located, hence it's a good practice to put the game file `game.exe` inside a new folder.
+
+## Table of Contents
+- [AI Smartness & Game Difficulty](#ai-smartness--game-difficulty)
+  - [Terminology](#terminology)
+  - [Easy Difficulty](#easy-difficulty)
+  - [Medium Difficulty](#medium-difficulty)
+- [Replay System](#replay-system)
+  - [Saving Replays](#saving-replays)
+  - [Watching replays](#watching-replays)
+- [File input mode](#file-input-mode)
+- [Implementation Details](#implementation-details)
+  - [Board](#board)
+  - [Token Customization](#token-customization)
+  - [User Independent Engine](#user-independent-engine)
 
 ## AI Smartness & Game Difficulty
 Game's AI comes in three difficulty levels, Easy, Medium and Hard.
@@ -41,6 +78,45 @@ If all columns are considered as burned columns, AI will select the middle of th
 <img src="./images/medium.png" alt="Graph of decision for medium difficulty game AI*">
 
 *Graph of decision for medium difficulty game AI*
+
+## Replay System
+
+### Saving Replays
+During the game, each column selection by the players is stored in an array. After each game finishes, end-handler function checks the gamemode and if the gamemode is PlayerVsPlayer or PlayerVsComputer or FileInputMode, the game asks the user if they want to save the reply of the game. If a positive signal is given, the game asks for the replay name(maximum 100 characters) and appends these new lines to the existing replay file, `replay.txt`(if the game detects that such a file does not exist, it will create one):
+
+```
+replay[
+R
+C
+name of replay
+id
+...column selections
+]replayend
+```
+
+**The name which the user inputs as the relpay file name, should not be "replay[" or "]replayend" as these words are reserved to be used for reading the replay file. If the users inputs such names, the game asks the user to input another name.**
+
+Every replay in the file begins with *replay[* and *]endreplay*, this provides the ability to save multiple replays in a single file.
+
+The numbers R and C are will be the board dimensions which were used for this game. The name of replay will be the string which the user enters. id is the current time in seconds which is given by *time()* function; This is used by the game to ditinguish replays based on their id and find the selected-replay in the file when needed, hence they can have the same name and the game still notices the difference. and lastly, column selections are all the columns selected by players in order which starts with player 1's selection. And at the end, *]replayend* is written.
+
+### Watching replays
+When the gamemode is set to *replay mode*, the game will read the content of the `replay.txt` if such a file exists, and prints the list of saved replays with their name and id for the user to choose. When a replay is chosen, The dimensions of the board will be loaded to game's settings and the id of the selected replay is saved.
+
+When the engine starts, it calls the moveFunction that it was given for each player, which in this case, they are the *replayMove* function. When the function is called for the first time, it reads the content of the replay file to put the cursor before the first column selection in the selected replay. Each time the function is called, it reads the column selection and returns this number, so the engine knows what column selection is made, and this continues till the end of the replay, in which either a win or lose or draw happens and the program reaches its end before the *replayMove* reads the last line which is *]replayend*.
+
+## File input mode
+You can put all the column selections in a .txt file like this:
+```
+1
+2
+1
+3
+1
+5
+...
+```
+And give the file to the game, the game reads and exectues the moves line by line. Just put in mind that the file should start with the column selection made by player 1 followed by player 2 and so on. Each column selection is a number between 1 and the number of columns $1<=x<=C$.
 
 ## Implementation Details
 
